@@ -2,18 +2,31 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { fetchData } from "./utils/fetchData";
 import { Card } from "./Card";
+import { DebugViewer } from "./DebugViewer";
 
 function App() {
+  // PokeApiのURL
   const initialURL = "https://pokeapi.co/api/v2/pokemon/";
+  // ローディング中かどうか
+  const [loading, setLoading] = useState(true);
+  // 前のページのURL
+  const [prevURL, setPrevURL] = useState("");
+  // 次のページのURL
+  const [nextURL, setNextURL] = useState("");
+  // ポケモンのデータ
   const [pokemonData, setPokemonData] = useState([]);
 
+  // ページの読み込み時に初回のポケモンのデータを取得
   useEffect(() => {
     initPokemonData();
+    setLoading(false);
   }, []);
 
+  // 初回のポケモンのデータを取得
   async function initPokemonData() {
     const response = await fetchData(initialURL);
     setPokemonData(await loadPokemonData(response.results));
+    setNextURL(response.next);
   }
 
   // ポケモンのデータを取得する
@@ -106,12 +119,47 @@ function App() {
     return height;
   }
 
+  // 前のページに移動
+  async function handlePrevPage() {
+    if (prevURL) {
+      setLoading(true);
+      let response = await fetchData(prevURL);
+      setPokemonData(await loadPokemonData(response.results));
+      setNextURL(response.next);
+      setPrevURL(response.previous);
+      setLoading(false);
+    }
+  }
+
+  // 次のページに移動
+  async function handleNextPage() {
+    if (nextURL) {
+      setLoading(true);
+      let response = await fetchData(nextURL);
+      setPokemonData(await loadPokemonData(response.results));
+      setNextURL(response.next);
+      setPrevURL(response.previous);
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="App">
       <h1>ポケモンずかん</h1>
-      {pokemonData.map((pokemon, index) => {
-        return <Card key={index} {...pokemon} />;
-      })}
+      {loading ? (
+        <p className="loading">ロード中...</p>
+      ) : (
+        <div className="card-wrapper">
+          {pokemonData.map((pokemon, index) => {
+            return <Card key={index} {...pokemon} />;
+          })}
+        </div>
+      )}
+      <div className="button-wrapper">
+        <button onClick={handlePrevPage}>前へ</button>
+        <button onClick={handleNextPage}>次へ</button>
+      </div>
+      <DebugViewer pokemonData={pokemonData} />
     </div>
   );
 }

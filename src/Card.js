@@ -1,3 +1,5 @@
+import "./Card.css";
+
 export const Card = ({
   name,
   imageUrl,
@@ -7,9 +9,11 @@ export const Card = ({
   height,
 }) => {
   return (
-    <div className="Card">
+    <div className="card">
       <h2>{name}</h2>
-      <img src={imageUrl} alt="" />
+      <figure>
+        <img src={imageUrl} alt="" />
+      </figure>
       <p>タイプ</p>
       <ul>
         {typeNames.map((typeName, index) => {
